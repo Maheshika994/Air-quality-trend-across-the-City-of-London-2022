@@ -1,0 +1,239 @@
+---
+title: "Mini Project"
+author: "S/18/841"
+date: "2024-01-30"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(tinytex)
+library(skimr)
+library(janitor)
+library(latex2exp)
+```
+```{r}
+London_Local_data_2022 <- read_csv("../data/london_local_data_2022.csv")
+```
+```{r}
+head(London_Local_data_2022)
+```
+
+
+
+```{r}
+london_local_sites <- read_csv("../Data/london_local_sites.csv")
+```
+```{r}
+head(london_local_sites)
+```
+
+cleaning data
+```{r}
+London_Local_data_2022 <- London_Local_data_2022 %>%
+  remove_empty(c("cols","rows"))
+```
+```{r}
+London_Local_data_2022[is.na(London_Local_data_2022)] <- 0
+```
+```{r}
+str(London_Local_data_2022)
+```
+```{r}
+skim(London_Local_data_2022)
+```
+
+```{r}
+London_Local_data_2022 <- London_Local_data_2022 %>%
+  mutate(month = factor(case_when(
+    month(date)==1 ~ "january",
+    month(date)==2 ~ "february",
+    month(date)==3 ~ "march",
+    month(date)==4 ~ "april",
+    month(date)==5 ~ "may",
+    month(date)==6 ~ "june",
+    month(date)==7 ~ "july",
+    month(date)==8 ~ "august",
+    month(date)==9 ~ "september",
+    month(date)==10 ~ "october",
+    month(date)==11 ~ "november",
+    month(date)==12 ~ "december",
+  )), year = year(date))
+```
+Plots of data sets with different air types
+```{r}
+London_Local_data_2022$month <- factor(London_Local_data_2022$month, 
+                                  levels = c("january","february","march","april","may",
+                                "june","july","august","september","october","november","december"))
+```
+
+NOX
+```{r}
+graph_NOX <- London_Local_data_2022 %>%
+  ggplot(aes(x=month, y=nox))+geom_boxplot(aes(col=month))+
+  coord_flip()+xlab('Month')+ylab('NOx Level')+
+  ggtitle("Amount of NOX in each month")
+
+graph_NOX
+```
+
+
+NO2
+```{r}
+graph_NO2 <- London_Local_data_2022 %>%
+  ggplot(aes(x=month, y=no2))+geom_boxplot(aes(col=month))+
+  coord_flip()+xlab('Month')+ylab('NO2 Level')+
+  ggtitle("Amount of NO2 in each month")
+
+graph_NO2
+```
+
+
+NO
+```{r}
+graph_NO <- London_Local_data_2022 %>%
+  ggplot(aes(x=month, y=no))+geom_boxplot(aes(col=month))+
+  coord_flip()+xlab('Month')+ylab('NO Level')+
+  ggtitle("Amount of NO in each month")
+
+graph_NO
+```
+pm10
+```{r}
+graph_pm10 <- London_Local_data_2022 %>%
+  ggplot(aes(x=month, y=pm10))+geom_boxplot(aes(col=month))+
+  coord_flip()+xlab('Month')+ylab('pm10 Level')+
+  ggtitle("Amount of pm10 in each month")
+
+graph_pm10
+```
+o3 count
+```{r}
+graph_o3 <- London_Local_data_2022 %>%
+  ggplot(aes(x=o3))+geom_freqpoly(aes(col=month))+
+  xlab("O3 level")+ylab("Count")+
+  ggtitle("Count of o3 in each month")
+
+graph_o3
+```
+pm2_5 count
+```{r}
+graph_pm2_5 <- London_Local_data_2022 %>%
+  ggplot(aes(x=pm2_5))+geom_freqpoly(aes(col=month))+
+  xlab("pm2_5 level")+ylab("Count")+
+  ggtitle("Count of pm2_5 in each month")
+
+graph_pm2_5
+```
+
+
+SO2 Count
+```{r}
+graph_SO2 <- London_Local_data_2022 %>%
+  ggplot(aes(x=so2))+geom_freqpoly(aes(col=month))+
+  xlab("SO2 amount")+ylab("Count")+
+  ggtitle("Count of SO2 in each month")
+
+graph_SO2
+```
+
+Summarization
+
+```{r}
+table_site <- London_Local_data_2022 %>%
+  group_by(site) %>%
+  summarise(NO=sum(no),
+            NO2=sum(no2),
+            NOx=sum(nox),
+            pm10=sum(pm10),
+            O3=sum(o3),
+            pm2_5=sum(pm2_5),
+            SO2=sum(so2))
+table_site
+```
+
+```{r}
+table_monthly <- London_Local_data_2022%>%
+  group_by(month)%>%
+  summarise(NO=sum(no),
+            NO2=sum(no2),
+            NOx=sum(nox),
+            pm10=sum(pm10),
+            O3=sum(o3),
+            pm2_5=sum(pm2_5),
+            SO2=sum(so2))
+table_monthly
+```
+```{r}
+table_monthly_total <- London_Local_data_2022%>%
+  group_by(month)%>%
+  summarise(Total_pollutant=sum(no)+sum(no2)+sum(nox)+
+              sum(pm10)+sum(o3)+sum(pm2_5)+sum(so2))
+table_monthly_total
+```
+```{r}
+table_site_total <- London_Local_data_2022%>%
+  group_by(site)%>%
+  summarise(Total_pollutant=sum(no)+sum(no2)+sum(nox)+
+              sum(pm10)+sum(o3)+sum(pm2_5)+sum(so2))
+table_site_total
+```
+
+```{r}
+max(table_monthly_total$Total_pollutant)
+```
+```{r}
+min(table_monthly_total$Total_pollutant)
+```
+```{r}
+max(table_site_total$Total_pollutant)
+```
+```{r}
+min(table_site_total$Total_pollutant)
+```
+eps files
+
+```{r}
+postscript(file ="graph_NOX.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_NOX
+dev.off()
+```
+```{r}
+postscript(file ="graph_NO2.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_NO2
+dev.off()
+```
+```{r}
+postscript(file ="graph_NO.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_NO
+dev.off()
+```
+```{r}
+postscript(file ="graph_o3.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_o3
+dev.off()
+```
+```{r}
+postscript(file ="graph_pm10.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_pm10
+dev.off()
+```
+```{r}
+postscript(file ="graph_pm2_5.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_pm2_5
+dev.off()
+```
+```{r}
+postscript(file ="graph_SO2.eps",width =5 ,height = 6,horizontal = FALSE )
+graph_SO2
+dev.off()
+```
+
